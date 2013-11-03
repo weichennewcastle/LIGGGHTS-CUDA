@@ -1,0 +1,127 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator 
+
+   Original Version:
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov 
+
+   See the README file in the top-level LAMMPS directory. 
+
+   ----------------------------------------------------------------------- 
+
+   USER-CUDA Package and associated modifications:
+   https://sourceforge.net/projects/lammpscuda/ 
+
+   Christian Trott, christian.trott@tu-ilmenau.de
+   Lars Winterfeld, lars.winterfeld@tu-ilmenau.de
+   Theoretical Physics II, University of Technology Ilmenau, Germany 
+
+   See the README file in the USER-CUDA directory. 
+
+   This software is distributed under the GNU General Public License.
+------------------------------------------------------------------------- */
+
+const unsigned int GRANULAR_DATA_MASK=X_MASK|V_MASK|F_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|IMAGE_MASK|RADIUS_MASK|RMASS_MASK|OMEGA_MASK|TORQUE_MASK;
+
+#include "atom_vec_granular_cuda_cu.h"
+
+void Cuda_AtomVecGranularCuda_Init(cuda_shared_data* sdata)
+{
+  return Cuda_AtomVecCuda_Init<GRANULAR_DATA_MASK>(sdata);
+}
+
+int Cuda_AtomVecGranularCuda_PackComm(cuda_shared_data* sdata,int n,int iswap,void* buf_send,int* pbc,int pbc_flag,int radvary)
+{
+	if(radvary==0)
+	return Cuda_AtomVecCuda_PackComm<X_MASK>(sdata,n,iswap,buf_send,pbc,pbc_flag);	
+	return Cuda_AtomVecCuda_PackComm<X_MASK|RADIUS_MASK|RMASS_MASK>(sdata,n,iswap,buf_send,pbc,pbc_flag);	
+}
+
+int Cuda_AtomVecGranularCuda_PackCommVel(cuda_shared_data* sdata,int n,int iswap,void* buf_send,int* pbc,int pbc_flag,int radvary)
+{
+	if(radvary==0)
+	return Cuda_AtomVecCuda_PackComm<X_MASK|V_MASK|OMEGA_MASK>(sdata,n,iswap,buf_send,pbc,pbc_flag);	
+	return Cuda_AtomVecCuda_PackComm<X_MASK|V_MASK|OMEGA_MASK|RADIUS_MASK|RMASS_MASK>(sdata,n,iswap,buf_send,pbc,pbc_flag);	
+}
+
+int Cuda_AtomVecGranularCuda_PackComm_Self(cuda_shared_data* sdata,int n,int iswap,int first,int* pbc,int pbc_flag,int radvary)
+{
+	if(radvary==0)
+	return Cuda_AtomVecCuda_PackComm_Self<X_MASK>(sdata,n,iswap,first,pbc,pbc_flag);	
+	return Cuda_AtomVecCuda_PackComm_Self<X_MASK|RADIUS_MASK|RMASS_MASK>(sdata,n,iswap,first,pbc,pbc_flag);	
+}
+
+int Cuda_AtomVecGranularCuda_PackCommVel_Self(cuda_shared_data* sdata,int n,int iswap,int first,int* pbc,int pbc_flag,int radvary)
+{
+	if(radvary==0)
+	return Cuda_AtomVecCuda_PackComm_Self<X_MASK|V_MASK|OMEGA_MASK>(sdata,n,iswap,first,pbc,pbc_flag);	
+	return Cuda_AtomVecCuda_PackComm_Self<X_MASK|V_MASK|OMEGA_MASK|RADIUS_MASK|RMASS_MASK>(sdata,n,iswap,first,pbc,pbc_flag);	
+}
+
+void Cuda_AtomVecGranularCuda_UnpackComm(cuda_shared_data* sdata,int n,int first,void* buf_recv,int iswap,int radvary)
+{
+	if(radvary==0)
+	return Cuda_AtomVecCuda_UnpackComm<X_MASK|V_MASK|OMEGA_MASK>(sdata,n,first,buf_recv,iswap);	
+	return Cuda_AtomVecCuda_UnpackComm<X_MASK|V_MASK|OMEGA_MASK|RADIUS_MASK|RMASS_MASK>(sdata,n,first,buf_recv,iswap);	
+}
+
+void Cuda_AtomVecGranularCuda_UnpackCommVel(cuda_shared_data* sdata,int n,int first,void* buf_recv,int iswap,int radvary)
+{
+	if(radvary==0)
+	return Cuda_AtomVecCuda_UnpackComm<X_MASK|V_MASK|OMEGA_MASK>(sdata,n,first,buf_recv,iswap);	
+	return Cuda_AtomVecCuda_UnpackComm<X_MASK|V_MASK|OMEGA_MASK|RADIUS_MASK|RMASS_MASK>(sdata,n,first,buf_recv,iswap);	
+}
+
+int Cuda_AtomVecGranularCuda_PackExchangeList(cuda_shared_data* sdata,int n,int dim,void* buf_send)
+{
+  const unsigned int data_mask=X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|IMAGE_MASK|RADIUS_MASK|RMASS_MASK|OMEGA_MASK;
+  return Cuda_AtomVecCuda_PackExchangeList<data_mask>(sdata,n,dim,buf_send);
+}
+
+int Cuda_AtomVecGranularCuda_PackExchange(cuda_shared_data* sdata,int nsend,void* buf_send,void* copylist)
+{
+  const unsigned int data_mask=X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|IMAGE_MASK|RADIUS_MASK|RMASS_MASK|OMEGA_MASK;
+  return Cuda_AtomVecCuda_PackExchange<data_mask>(sdata,nsend,buf_send,copylist);
+}
+
+int Cuda_AtomVecGranularCuda_UnpackExchange(cuda_shared_data* sdata,int nsend,void* buf_send,void* copylist)
+{
+  const unsigned int data_mask=X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|IMAGE_MASK|RADIUS_MASK|RMASS_MASK|OMEGA_MASK;
+  return Cuda_AtomVecCuda_UnpackExchange<data_mask>(sdata,nsend,buf_send,copylist);
+}
+
+int Cuda_AtomVecGranularCuda_PackBorder(cuda_shared_data* sdata,int nsend,int iswap,void* buf_send,int* pbc,int pbc_flag)
+{
+  const unsigned int data_mask=X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK;
+  return Cuda_AtomVecCuda_PackBorder<data_mask>(sdata,nsend,iswap,buf_send,pbc,pbc_flag);
+}
+
+int Cuda_AtomVecGranularCuda_PackBorderVel(cuda_shared_data* sdata,int nsend,int iswap,void* buf_send,int* pbc,int pbc_flag)
+{
+  const unsigned int data_mask=X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK|OMEGA_MASK;
+  return Cuda_AtomVecCuda_PackBorder<data_mask>(sdata,nsend,iswap,buf_send,pbc,pbc_flag);
+}
+
+int Cuda_AtomVecGranularCuda_PackBorder_Self(cuda_shared_data* sdata,int n,int iswap,int first,int* pbc,int pbc_flag)
+{
+  const unsigned int data_mask=X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK;
+  return Cuda_AtomVecCuda_PackBorder_Self<data_mask>(sdata,n,iswap,first,pbc,pbc_flag);
+}
+
+int Cuda_AtomVecGranularCuda_PackBorderVel_Self(cuda_shared_data* sdata,int n,int iswap,int first,int* pbc,int pbc_flag)
+{
+  const unsigned int data_mask=X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK|OMEGA_MASK;
+  return Cuda_AtomVecCuda_PackBorder_Self<data_mask>(sdata,n,iswap,first,pbc,pbc_flag);
+}
+
+int Cuda_AtomVecGranularCuda_UnpackBorder(cuda_shared_data* sdata,int n,int first,void* buf_recv)
+{
+  const unsigned int data_mask=X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK;
+  return Cuda_AtomVecCuda_UnpackBorder<data_mask>(sdata,n,first,buf_recv);
+}
+
+int Cuda_AtomVecGranularCuda_UnpackBorderVel(cuda_shared_data* sdata,int n,int first,void* buf_recv)
+{
+  const unsigned int data_mask=X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK|OMEGA_MASK;
+  return Cuda_AtomVecCuda_UnpackBorder<data_mask>(sdata,n,first,buf_recv);
+}

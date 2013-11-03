@@ -74,7 +74,7 @@ class AtomVecSphere : public AtomVec {
   int data_vel_hybrid(int, char **);
   bigint memory_usage();
 
- private:
+protected:
   int *tag,*type,*mask,*image;
   double **x,**v,**f;
   double *radius,*density,*rmass;
